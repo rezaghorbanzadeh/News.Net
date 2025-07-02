@@ -1,8 +1,19 @@
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.EntityFrameworkCore;
+using NewsSite.Data;
 
+var builder = WebApplication.CreateBuilder(args);
+IConfiguration configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .Build();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+#region Config DataBase
+builder.Services.AddDbContext<MyBlogContext>(option =>
+{
+    option.UseSqlServer(configuration.GetConnectionString("MyConnection"));
+});
+#endregion
 
 var app = builder.Build();
 
