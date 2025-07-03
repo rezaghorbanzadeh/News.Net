@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using NewsSite.Data;
+using NewsSite.Services.Implemtations;
+using NewsSite.Services.Interface;
+
 
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = new ConfigurationBuilder()
@@ -7,6 +10,8 @@ IConfiguration configuration = new ConfigurationBuilder()
     .Build();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IUserService, UserService>();
+
 
 #region Config DataBase
 builder.Services.AddDbContext<MyBlogContext>(option =>
