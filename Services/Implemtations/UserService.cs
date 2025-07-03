@@ -43,6 +43,21 @@ namespace NewsSite.Services.Implemtations
             return RegisterResult.Success;
         }
 
+
+
+        public async Task<User> GetUserByEmail(string email)
+        {
+            return await _ctx.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<LoginResult> LoginUser(LoginVieModel login)
+        {
+            var user = await GetUserByEmail(login.Email);
+            if(user == null) return LoginResult.NotFound;
+            if (user.Password != SiteSecurity.EncodePasswordMd5(login.Password)) return LoginResult.Error;
+            return LoginResult.Success;
+        }
+
         #region user
 
         #endregion
@@ -50,7 +65,6 @@ namespace NewsSite.Services.Implemtations
         {
             if (_ctx != null) await _ctx.DisposeAsync();
         }
-
 
     }
 }

@@ -15,7 +15,16 @@
                             </div>
                             <div class="header-info-right">
                                 <ul class="header-social">
-                                    <li><a asp-controller="Accounting" asp-action="Register"><i class="fa fa-user"></i></a></li>
+                                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                    {
+                                        <p>welcome، @User.Identity.Name/</p>
+                                        <a asp-controller="Accounting" asp-action="LogOut"></a>
+                                    }
+                                    else
+                                    {
+                                        <li><a asp-controller="Accounting" asp-action="Register"><i class="fa fa-user"></i></a></li>
+                                    }
+                                   
                                 </ul>
                             </div>
                         </div>

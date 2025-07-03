@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using NewsSite.Data;
 using NewsSite.Services.Implemtations;
@@ -12,6 +13,16 @@ IConfiguration configuration = new ConfigurationBuilder()
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUserService, UserService>();
 
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.HttpOnly = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+        options.LoginPath = "/Login";
+        options.AccessDeniedPath = "/";
+    });
 
 #region Config DataBase
 builder.Services.AddDbContext<MyBlogContext>(option =>
@@ -32,6 +43,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseCookiePolicy();
 
 app.UseAuthorization();
 

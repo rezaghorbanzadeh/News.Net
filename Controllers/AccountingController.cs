@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 
 using NewsSite.Services.Interface;
 using NewsSite.ViewsModels.Account;
@@ -64,7 +67,47 @@ namespace NewsSite.Controllers
         [HttpGet("Login")]
         public IActionResult Login()
         {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                TempData[ErrorMessage] = "شما قبلا وارد شده اید ";
+                return Redirect("/");
+            }
             return View();
+        }
+
+        [HttpPost("Login"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginVieModel login)
+        {
+            var res = await _userService.LoginUser(login);
+            switch (res)
+            {
+                case LoginResult.NotFound:
+                    TempData[ErrorMessage] = "کاربری با این مشخضات پیدا نشد";
+                    break;
+                case LoginResult.Error:
+                    TempData[ErrorMessage] = "ایمیل وارد شدخ تکراری است";
+                    break;
+                case LoginResult.Success:
+                   var user = await _userService.GetUserByEmail(login.Email);
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name , user.UserName),
+                        new Claim(ClaimTypes.Email , user.Email),
+                        new Claim(ClaimTypes.NameIdentifier , user.Id.ToString()),
+                    };
+                    var identity = new ClaimsIdentity(claims,
+                        CookieAuthenticationDefaults.AuthenticationScheme);
+                    var properties = new AuthenticationProperties
+                    {
+                        IsPersistent = login.RememberMe
+                    };
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.
+                        AuthenticationScheme, new ClaimsPrincipal(identity), properties);
+                    TempData[SuccessMessage] = "login ok ";
+                    return Redirect("/");
+                   
+            }
+            return View(login) ;
         }
         #endregion
 
@@ -83,6 +126,20 @@ namespace NewsSite.Controllers
         public IActionResult ResetPassword()
         {
             return View();
+        }
+        #endregion
+
+
+
+        #region LogOut
+        [HttpGet("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            if (User.Identity != null && User.Identity.IsAuthenticated) return Redirect("/");
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme);
+            TempData[InfoMessage] = "log out is ok ";
+            return Redirect("/");
         }
         #endregion
     }
